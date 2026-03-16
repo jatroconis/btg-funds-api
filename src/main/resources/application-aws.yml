@@ -1,10 +1,14 @@
 server:
   port: 8080
   forward-headers-strategy: framework
-  servlet:
-    context-path: /Prod
 
 aws:
   region: us-east-1
   dynamodb:
     endpoint: ""
+
+springdoc:
+  swagger-ui:
+    config-url: /Prod/v3/api-docs/swagger-config
+    url: /Prod/v3/api-docs
+    disable-swagger-default-url: true

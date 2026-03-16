@@ -68,9 +68,30 @@ WHERE
 
 ## Despliegue en AWS
 
-El proyecto incluye una plantilla SAM (`template.yaml`) para desplegarlo como Lambda + API Gateway:
+El proyecto incluye una plantilla SAM (`template.yaml`) para desplegarlo como Lambda + API Gateway + DynamoDB. Todo queda dentro del Free Tier.
 
 ```bash
 sam build
-sam deploy --guided
+sam deploy --guided   # solo la primera vez, después: sam deploy
 ```
+
+Una vez desplegado, SAM muestra la URL del API Gateway en la salida. Los endpoints disponibles son:
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/v1/funds` | Lista todos los fondos |
+| GET | `/api/v1/clients/{id}` | Consulta un cliente y su saldo |
+| POST | `/api/v1/clients/{id}/subscriptions` | Suscribirse a un fondo |
+| DELETE | `/api/v1/clients/{id}/subscriptions/{fundId}` | Cancelar suscripción |
+| GET | `/api/v1/clients/{id}/subscriptions/{fundId}/history` | Historial de transacciones |
+
+### Documentación de la API en producción
+
+En local, Swagger UI funciona directamente en `http://localhost:8080/swagger-ui.html`. Sin embargo, al desplegar en AWS, API Gateway no sirve correctamente los archivos estáticos de la interfaz UI, por lo que la forma oficial de consultar y probar la API en producción es mediante **Swagger Editor**:
+
+1. Copia o entra a la URL del descriptor JSON de OpenAPI en producción:
+   ```text
+   https://p6ugk2x683.execute-api.us-east-1.amazonaws.com/Prod/v3/api-docs
+   ```
+2. Ve a [Swagger Editor](https://editor.swagger.io) y pega el JSON, o impórtalo usando `File > Import URL`.
+3. ¡Listo! La API está configurada con CORS completo y el Server URL relativo (`/Prod`), por lo que puedes usar el botón **Try it out** para probar todos los endpoints reales de AWS directamente desde el editor en tu navegador.
