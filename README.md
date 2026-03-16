@@ -4,7 +4,7 @@ API REST para la gestión de fondos de inversión de BTG Pactual. Permite a los 
 
 ## Arquitectura
 
-El proyecto sigue una arquitectura hexagonal (puertos y adaptadores) con Java 17 y Spring Boot 3.2.3. Se usa DynamoDB como base de datos bajo un esquema Single-Table Design, y la API se documenta con OpenAPI 3 (Swagger).
+El proyecto sigue una arquitectura hexagonal (puertos y adaptadores) con Java 17 y Spring Boot 3.2.3. Se usa DynamoDB como base de datos bajo un esquema Single-Table Design, y la API se documenta con (Swagger).
 
 ### Modelo de datos en DynamoDB
 
