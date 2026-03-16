@@ -1,0 +1,89 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: BTG Pactual Funds API - Serverless (Lambda + DynamoDB + SES)
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: java17
+    Architectures:
+      - x86_64
+
+Resources:
+
+  # ─── DynamoDB Table (Single-Table Design) ───
+  BtgFundsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: BtgFundsTable
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gsi1pk
+          AttributeType: S
+        - AttributeName: gsi1sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1
+          KeySchema:
+            - AttributeName: gsi1pk
+              KeyType: HASH
+            - AttributeName: gsi1sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  # ─── Lambda Function ───
+  BtgFundsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: btg-funds-api
+      Handler: com.btg.funds.StreamLambdaHandler
+      CodeUri: .
+      AutoPublishAlias: live
+      SnapStart:
+        ApplyOn: PublishedVersions
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref BtgFundsTable
+          SPRING_PROFILES_ACTIVE: aws
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref BtgFundsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ses:SendEmail
+                - ses:SendRawEmail
+              Resource: '*'
+      Events:
+        ApiRoot:
+          Type: Api
+          Properties:
+            Path: /
+            Method: ANY
+        ApiProxy:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  BtgFundsApi:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod"
+  BtgFundsFunction:
+    Description: Lambda Function ARN
+    Value: !GetAtt BtgFundsFunction.Arn
+  DynamoDBTable:
+    Description: DynamoDB Table Name
+    Value: !Ref BtgFundsTable
